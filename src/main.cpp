@@ -22,7 +22,7 @@ ez::Drive chassis(
 // - `2.75` is the wheel diameter
 // - `4.0` is the distance from the center of the wheel to the center of the robot
 ez::tracking_wheel horiz_tracker(6, 2, .44);  // FRONT This tracking wheel is perpendicular to the drive wheels
-ez::tracking_wheel vert_tracker(7, 2, .5);   // RIGHT This tracking wheel is parallel to the drive wheels
+ez::tracking_wheel vert_tracker(-7, 2, .5);   // RIGHT This tracking wheel is parallel to the drive wheels
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -118,8 +118,8 @@ void autonomous() {
   chassis.drive_sensor_reset();               // Reset drive sensors to 0
   chassis.odom_xyt_set(0_in, 0_in, 0_deg);    // Set the current position, you can start at a specific position with this
   chassis.drive_brake_set(MOTOR_BRAKE_HOLD);  // Set motors to hold.  This helps autonomous consistency
-  drive_forward();
-  /*
+  odom_pure_pursuit_example(); 
+   /*
   Odometry and Pure Pursuit are not magic
 
   It is possible to get perfectly consistent results without tracking wheels,
