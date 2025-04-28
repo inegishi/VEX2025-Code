@@ -15,13 +15,11 @@ extern Drive chassis;
 inline pros::Motor intakeBot(13);
 inline pros::Motor intakeTop(12);
 inline pros::Optical color(3);
-inline pros::ADIDigitalIn colorLimit('E');
 inline pros::Distance colorDist(16);
 //CLAMP/////////////////////////////////////////
-inline pros::ADIDigitalIn clampLimit('C');
-inline pros::ADIDigitalOut clampP('A');
-//DOINKER/////////////////////////////////////
-inline pros::ADIDigitalOut doinkerP('D');
+inline pros::adi::DigitalIn clampLimit('C');
+inline pros::adi::DigitalOut clampP('A');
+inline pros::adi::DigitalOut doinkerP('D');
 //LB/////////////////////////////////////////
 inline pros::Motor LBR(-2);
 inline pros::Motor LBL(1);
