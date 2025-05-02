@@ -4,7 +4,35 @@
 // For installation, upgrading, documentations, and tutorials, check out our website!
 // https://ez-robotics.github.io/EZ-Template/
 /////
+
 void ez_screen_task();
+
+void clampThread(void* param) {
+  bool clamped = false;
+
+  while (true) {
+  if (clampLimit.get_value() == 1 && clamped == false) {
+      clampP.set_value(1);
+      clamped = true;
+      if (master.get_digital(DIGITAL_L2)) {
+        clampP.set_value(0);
+        clamped = false;
+      }
+  clampP.set_value(0);
+    pros::delay(10);                   // Add delay to prevent CPU overload
+  }
+}
+}
+
+void colorSort(void* param) {
+
+  while (true) {
+    color.set_led_pwm(100);
+    int hue = color.get_hue();
+    ez::screen_print("Hue: %d", hue);  // Add label and format
+    pros::delay(10);                   // Add delay to prevent CPU overload
+  }
+}
 
 // Chassis constructor
 ez::Drive chassis(
@@ -76,7 +104,10 @@ void initialize() {
   pros::Task ezScreenTask(ez_screen_task);
   chassis.initialize();
   ez::as::initialize();
+  // pros::Task colorTask(colorSort);
+  pros::Task clampTask(clampThread);
   master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
+
 }
 
 /**
@@ -229,6 +260,7 @@ void ez_template_extras() {
   }
 }
 
+
 /**
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -243,6 +275,7 @@ void ez_template_extras() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+
   // This is preference to what you like to drive on
   chassis.drive_brake_set(MOTOR_BRAKE_COAST);
 
@@ -267,7 +300,6 @@ void opcontrol() {
   while (true) {
     // Gives you some extras to make EZ-Template ezier
     ez_template_extras();
-    color.set_led_pwm(100);
 
     chassis.opcontrol_tank();  // Tank control
     // chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
@@ -378,6 +410,7 @@ void opcontrol() {
 		}
 		else if(clampLimit.get_new_press())
 			clampP.set_value(0);
+
     //DOINKER Code///////////////////////////////////////////////////
     if(master.get_digital(DIGITAL_L2)){
       doinkerP.set_value(1);
