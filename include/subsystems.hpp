@@ -14,7 +14,7 @@ extern Drive chassis;
 //INTAKE////////////////////////////////////////
 inline pros::Motor intakeBot(13);
 inline pros::Motor intakeTop(12);
-inline pros::Optical color(3);
+inline pros::Optical colorSensor(3);
 inline pros::Distance colorDist(16);
 //CLAMP/////////////////////////////////////////
 inline pros::adi::DigitalIn clampLimit('C');

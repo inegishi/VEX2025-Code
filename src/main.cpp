@@ -1,5 +1,6 @@
 #include "main.h"
 
+
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
 // https://ez-robotics.github.io/EZ-Template/
@@ -24,15 +25,46 @@ void clampThread(void* param) {
 }
 }
 
+static bool colorReject = true;
+
 void colorSort(void* param) {
+  colorSensor.set_led_pwm(100);
 
   while (true) {
-    color.set_led_pwm(100);
-    int hue = color.get_hue();
-    ez::screen_print("Hue: %d", hue);  // Add label and format
-    pros::delay(10);                   // Add delay to prevent CPU overload
+    int hue = colorSensor.get_hue();
+
+    // AUTOMATIC COLOR-BASED REJECTION
+    if (hue < 20 && colorReject) {
+      colorReject = false;
+      pros::delay(50);
+      intakeTop.brake();
+      pros::delay(50);
+      intakeTop.move(-100);
+      pros::delay(50);
+      intakeTop.move(100);
+
+      pros::delay(500);  // Optional cooldown
+      colorReject = true;
+    }
+
+    // MANUAL CONTROL (only allowed if not rejecting)
+    if (colorReject) {
+      if (master.get_digital(DIGITAL_R1)) {
+        intakeBot.move(127);
+        intakeTop.move(127);
+      } else if (master.get_digital(DIGITAL_R2)) {
+        intakeBot.move(-127);
+        intakeTop.move(-127);
+      } else {
+        intakeBot.brake();
+        intakeTop.brake();
+      }
+    }
+
+    pros::delay(10);  // Avoid CPU overload
   }
 }
+
 
 // Chassis constructor
 ez::Drive chassis(
@@ -60,9 +92,8 @@ ez::tracking_wheel vert_tracker(-7, 2, .5);   // RIGHT This tracking wheel is pa
  */
 void initialize() {
 
-
   pros::delay(500);  // Stop the user from doing anything while legacy ports configure
-
+  pros::lcd::initialize();
   // Look at your horizontal tracking wheel and decide if it's in front of the midline of your robot or behind it
   //  - change `back` to `front` if the tracking wheel is in front of the midline
   //  - ignore this if you aren't using a horizontal tracker
@@ -101,11 +132,11 @@ void initialize() {
       {"Boomerang Pure Pursuit\n\nGo to (0, 24, 45) on the way to (24, 24) then come back to (0, 0, 0)", odom_boomerang_injected_pure_pursuit_example},
       {"Measure Offsets\n\nThis will turn the robot a bunch of times and calculate your offsets for your tracking wheels.", measure_offsets},
   });
-  pros::Task ezScreenTask(ez_screen_task);
+  // pros::Task ezScreenTask(ez_screen_task);
   chassis.initialize();
   ez::as::initialize();
-  // pros::Task colorTask(colorSort);
-  pros::Task clampTask(clampThread);
+  pros::Task colorTask(colorSort);
+  // pros::Task clampTask(clampThread);
   master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
 
 }
@@ -149,7 +180,7 @@ void autonomous() {
   chassis.drive_sensor_reset();               // Reset drive sensors to 0
   chassis.odom_xyt_set(0_in, 0_in, 0_deg);    // Set the current position, you can start at a specific position with this
   chassis.drive_brake_set(MOTOR_BRAKE_HOLD);  // Set motors to hold.  This helps autonomous consistency
-  odom_pure_pursuit_example(); 
+  // odom_pure_pursuit_example(); 
    /*
   Odometry and Pure Pursuit are not magic
 
@@ -287,17 +318,25 @@ void opcontrol() {
 	int LBButtonCondition = 1;
   bool reject = false;
   bool wrongColor = false;
-  color.set_led_pwm(100);
+  // color.set_led_pwm(100);
   int timer1 = 0;
   int timer2 = 0;
 
   int intakePos = 0;
   int timer3 = 0;
   //intakeTop.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-  color.set_integration_time(15);
+  colorSensor.set_integration_time(15);
   int rejectDelay = 110;// 140 (too late), (too soon)
 
   while (true) {
+    ///COLOR
+    int hue = colorSensor.get_hue();
+    colorSensor.set_led_pwm(100);
+    pros::lcd::print(0, "Hue: %d", hue);
+    
+    
+    
+    // ez::clear_screen();
     // Gives you some extras to make EZ-Template ezier
     ez_template_extras();
 
@@ -313,69 +352,87 @@ void opcontrol() {
 
     //INTAKE CODE///////////////////////////////
 		
-    timer2 = pros::millis()-timer1;
-    if(color.get_hue() >= 10 && color.get_hue() <= 25){//RED REJECT
-      wrongColor = true;
-    }
-    else{
-      wrongColor = false;
-    }
+    // timer2 = pros::millis()-timer1;
+    // if(color.get_hue() >= 10 && color.get_hue() <= 25){//RED REJECT
+    //   wrongColor = true;
+    // }
+    // else{
+    //   wrongColor = false;
+    // }
 
-    if(wrongColor && /*colorLimit.get_value() == 1*/ colorDist.get() < 100 && reject == false){
-      timer1 = pros::millis();
-      reject = true;
-      intakePos = intakeTop.get_position();
-    }
-
-
-    if(master.get_digital(DIGITAL_LEFT)){
-      reject = false;
-    }
-    if(reject == true){
+    // if(wrongColor && /*colorLimit.get_value() == 1*/ colorDist.get() < 100 && reject == false){
+    //   timer1 = pros::millis();
+    //   reject = true;
+    //   intakePos = intakeTop.get_position();
+    // }
 
 
-      // if(intakeTop.get_position()-intakePos < 100){
-      //   intakeTop.move(127);
-      // }
-      // else if(intakeTop.get_position()-intakePos >= 100){//was ,290 too much
+    // if(master.get_digital(DIGITAL_LEFT)){
+    //   reject = false;
+    // }
+    // if(reject == true){
+
+
+    //   // if(intakeTop.get_position()-intakePos < 100){
+    //   //   intakeTop.move(127);
+    //   // }
+    //   // else if(intakeTop.get_position()-intakePos >= 100){//was ,290 too much
    
-      //   intakeTop.brake();
-      //   intakeBot.brake();
-      //   timer3 = pros::millis();
-      // }
-      if(timer2 < rejectDelay){ //was 50 (too low)
-        intakeBot.move(127);
-        intakeTop.move(127);
-      }
-      else if(timer2 >=rejectDelay && timer2 <= (rejectDelay+230)){//was ,200 (too low)
-       intakeBot.brake();
-       intakeTop.brake();
-      }
+    //   //   intakeTop.brake();
+    //   //   intakeBot.brake();
+    //   //   timer3 = pros::millis();
+    //   // }
+    //   if(timer2 < rejectDelay){ //was 50 (too low)
+    //     intakeBot.move(127);
+    //     intakeTop.move(127);
+    //   }
+    //   else if(timer2 >=rejectDelay && timer2 <= (rejectDelay+230)){//was ,200 (too low)
+    //    intakeBot.brake();
+    //    intakeTop.brake();
+    //   }
 
       
-      //  else{
-      //   reject = false;
-      //  }
+    //   //  else{
+    //   //   reject = false;
+    //   //  }
        
-    }
-    else{
-      if(!master.get_digital(DIGITAL_Y)){
-        if(master.get_digital(DIGITAL_R1)){
-          intakeBot.move(127);//100 worked ok
-          intakeTop.move(127);
-        }
-        else if(master.get_digital(DIGITAL_R2)){
-          intakeBot.move(-127);
-          intakeTop.move(-127);			
-        }
-        else{
-          intakeBot.brake();
-          intakeTop.brake();
-        }
+    // }
+    // else{
+    //   if(!master.get_digital(DIGITAL_Y)){
+    //     if(master.get_digital(DIGITAL_R1)){
+    //       intakeBot.move(127);//100 worked ok
+    //       intakeTop.move(127);
+    //     }
+    //     else if(master.get_digital(DIGITAL_R2)){
+    //       intakeBot.move(-127);
+    //       intakeTop.move(-127);			
+    //     }
+    //     else{
+    //       intakeBot.brake();
+    //       intakeTop.brake();
+    //     }
   
-      }
-    }
+    //   }
+    // }
     
+
+
+    ////MANUAL INTAKE CODE///////////
+    // if  (master.get_digital(DIGITAL_R1) == 1 && colorReject == true) {
+    //         intakeBot.move(127);//100 worked ok
+    //         intakeTop.move(127);
+    //       }
+    //       else if(master.get_digital(DIGITAL_R2) == 1 && colorReject == true){
+    //         intakeBot.move(-127);
+    //         intakeTop.move(-127);			
+    //       }
+    //       else{
+    //         intakeBot.brake();
+    //         intakeTop.brake();
+    //       }
+
+
+
 		//LB Code///////////////////////////////////////////////////////////////////////////////////
     if(master.get_digital_new_press(DIGITAL_RIGHT))
 		{
@@ -404,12 +461,12 @@ void opcontrol() {
 			LBL.move_absolute(LBStage,70);
 		}
 
-    //CLAMP Code/////////////////////////////////////////////
-    if(master.get_digital(DIGITAL_L1)){
-			clampP.set_value(1);
-		}
-		else if(clampLimit.get_new_press())
-			clampP.set_value(0);
+    // //CLAMP Code/////////////////////////////////////////////
+    // if(master.get_digital(DIGITAL_L1)){
+		// 	clampP.set_value(1);
+		// }
+		// else if(clampLimit.get_new_press())
+		// 	clampP.set_value(0);
 
     //DOINKER Code///////////////////////////////////////////////////
     if(master.get_digital(DIGITAL_L2)){
