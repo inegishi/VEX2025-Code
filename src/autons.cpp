@@ -6,7 +6,7 @@
 /////
 
 // These are out of 127
-const int DRIVE_SPEED = 50;
+const int DRIVE_SPEED = 127;
 const int TURN_SPEED = 90;
 const int SWING_SPEED = 110;
 
@@ -16,11 +16,11 @@ const int SWING_SPEED = 110;
 void default_constants() {
   // P, I, D, and Start I
 
-  chassis.pid_drive_constants_set(20.0, 0.0, 110.0);         // Fwd/rev constants, used for odom and non odom motions
+  chassis.pid_drive_constants_set(8, 0.0, 110.0);         // Fwd/rev constants, used for odom and non odom motions
 
   chassis.pid_heading_constants_set(11.0, 0.0, 20.0);        // Holds the robot straight while going forward without odom
   chassis.pid_turn_constants_set(11, 0.07, 100.0, 30.0);     // Turn in place constants
-  chassis.pid_swing_constants_set(6.0, 0.0, 65.0);           // Swing constants
+  chassis.pid_swing_constants_set(12.0, 0.0, 65.0);           // Swing constants
   chassis.pid_odom_angular_constants_set(1.6, 0.0, 80);   // Angular control for odom motions
   chassis.pid_odom_boomerang_constants_set(2, 0.01, 100.0, 30.0);  // Angular control for boomerang motions
 
@@ -275,9 +275,9 @@ void odom_drive_example() {
 ///
 void odom_pure_pursuit_example() {
   // Drive to 0, 30 and pass through 6, 10 and 0, 20 on the way, with slew
-  chassis.pid_odom_set({{{0_in, 10_in}, fwd, DRIVE_SPEED},
-                        {{0_in, 20_in}, fwd, DRIVE_SPEED},
-                        {{0_in, 30_in}, fwd, DRIVE_SPEED}},
+  chassis.pid_odom_set({{{0_in, 12_in}, fwd, DRIVE_SPEED},
+                        {{5_in, 24_in}, fwd, DRIVE_SPEED},
+                        {{0_in, 0_in}, fwd, DRIVE_SPEED}},
                        true);
   chassis.pid_wait();
 
@@ -291,9 +291,9 @@ void odom_pure_pursuit_example() {
 // Odom Pure Pursuit Wait Until
 ///
 void odom_pure_pursuit_wait_until_example() {
-  chassis.pid_odom_set({{{0_in, 24_in}, fwd, DRIVE_SPEED},
-                        {{12_in, 24_in}, fwd, DRIVE_SPEED},
-                        {{24_in, 24_in}, fwd, DRIVE_SPEED}},
+  chassis.pid_odom_set({{{0_in, 12_in}, fwd, DRIVE_SPEED},
+                        {{0_in, 24_in}, fwd, DRIVE_SPEED},
+                        {{12_in, 36_in}, fwd, DRIVE_SPEED}},
                        true);
   chassis.pid_wait_until_index(1);  // Waits until the robot passes 12, 24
   // Intake.move(127);  // Set your intake to start moving once it passes through the second point in the index
@@ -392,6 +392,7 @@ void measure_offsets() {
 // . . .
 // Make your own autonomous functions here!
 // . . .
+
 
 void sensor_reset(){
   

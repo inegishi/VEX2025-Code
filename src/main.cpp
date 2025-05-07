@@ -36,15 +36,10 @@ void colorSort(void* param) {
     // AUTOMATIC COLOR-BASED REJECTION
     if (hue < 20 && colorReject) {
       colorReject = false;
-      pros::delay(50);
-      intakeTop.brake();
-      pros::delay(50);
-      intakeTop.move(-100);
-      pros::delay(50);
-      intakeTop.move(100);
-
+      pistonC.set_value(1);
       pros::delay(500);  // Optional cooldown
       colorReject = true;
+      pistonC.set_value(0);
     }
 
     // MANUAL CONTROL (only allowed if not rejecting)
@@ -69,10 +64,10 @@ void colorSort(void* param) {
 // Chassis constructor
 ez::Drive chassis(
     // These are your drive motors, the first motor is used for sensing!
-    {5,-4,14,-15},     // Left Chassis Ports (negative port will reverse it!)
+    {16,11,14,-15},     // Left Chassis Ports (negative port will reverse it!)
     {-9,10,-19,20},  // Right Chassis Ports (negative port will reverse it!)
 
-    8,      // IMU Port
+    4,      // IMU Port
     3.25,  // Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
     600*(36/48));   // Wheel RPM = cartridge * (motor gear / wheel gear)
 
@@ -81,8 +76,8 @@ ez::Drive chassis(
 //  - you should get positive values on the encoders going FORWARD and RIGHT
 // - `2.75` is the wheel diameter
 // - `4.0` is the distance from the center of the wheel to the center of the robot
-ez::tracking_wheel horiz_tracker(6, 2, .44);  // FRONT This tracking wheel is perpendicular to the drive wheels
-ez::tracking_wheel vert_tracker(-7, 2, .5);   // RIGHT This tracking wheel is parallel to the drive wheels
+ez::tracking_wheel horiz_tracker(7, 2, -1.81);  // FRONT This tracking wheel is perpendicular to the drive wheels
+ez::tracking_wheel vert_tracker(8, 2, -4.52);   // RIGHT This tracking wheel is parallel to the drive wheels
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -132,7 +127,7 @@ void initialize() {
       {"Boomerang Pure Pursuit\n\nGo to (0, 24, 45) on the way to (24, 24) then come back to (0, 0, 0)", odom_boomerang_injected_pure_pursuit_example},
       {"Measure Offsets\n\nThis will turn the robot a bunch of times and calculate your offsets for your tracking wheels.", measure_offsets},
   });
-  // pros::Task ezScreenTask(ez_screen_task);
+  pros::Task ezScreenTask(ez_screen_task);
   chassis.initialize();
   ez::as::initialize();
   pros::Task colorTask(colorSort);
@@ -180,8 +175,7 @@ void autonomous() {
   chassis.drive_sensor_reset();               // Reset drive sensors to 0
   chassis.odom_xyt_set(0_in, 0_in, 0_deg);    // Set the current position, you can start at a specific position with this
   chassis.drive_brake_set(MOTOR_BRAKE_HOLD);  // Set motors to hold.  This helps autonomous consistency
-  // odom_pure_pursuit_example(); 
-   /*
+  blueside();  /*
   Odometry and Pure Pursuit are not magic
 
   It is possible to get perfectly consistent results without tracking wheels,
@@ -329,12 +323,7 @@ void opcontrol() {
   int rejectDelay = 110;// 140 (too late), (too soon)
 
   while (true) {
-    ///COLOR
-    int hue = colorSensor.get_hue();
-    colorSensor.set_led_pwm(100);
-    pros::lcd::print(0, "Hue: %d", hue);
-    
-    
+
     
     // ez::clear_screen();
     // Gives you some extras to make EZ-Template ezier
@@ -349,88 +338,6 @@ void opcontrol() {
     // . . .
     // Put more user control code here!
     // . . .
-
-    //INTAKE CODE///////////////////////////////
-		
-    // timer2 = pros::millis()-timer1;
-    // if(color.get_hue() >= 10 && color.get_hue() <= 25){//RED REJECT
-    //   wrongColor = true;
-    // }
-    // else{
-    //   wrongColor = false;
-    // }
-
-    // if(wrongColor && /*colorLimit.get_value() == 1*/ colorDist.get() < 100 && reject == false){
-    //   timer1 = pros::millis();
-    //   reject = true;
-    //   intakePos = intakeTop.get_position();
-    // }
-
-
-    // if(master.get_digital(DIGITAL_LEFT)){
-    //   reject = false;
-    // }
-    // if(reject == true){
-
-
-    //   // if(intakeTop.get_position()-intakePos < 100){
-    //   //   intakeTop.move(127);
-    //   // }
-    //   // else if(intakeTop.get_position()-intakePos >= 100){//was ,290 too much
-   
-    //   //   intakeTop.brake();
-    //   //   intakeBot.brake();
-    //   //   timer3 = pros::millis();
-    //   // }
-    //   if(timer2 < rejectDelay){ //was 50 (too low)
-    //     intakeBot.move(127);
-    //     intakeTop.move(127);
-    //   }
-    //   else if(timer2 >=rejectDelay && timer2 <= (rejectDelay+230)){//was ,200 (too low)
-    //    intakeBot.brake();
-    //    intakeTop.brake();
-    //   }
-
-      
-    //   //  else{
-    //   //   reject = false;
-    //   //  }
-       
-    // }
-    // else{
-    //   if(!master.get_digital(DIGITAL_Y)){
-    //     if(master.get_digital(DIGITAL_R1)){
-    //       intakeBot.move(127);//100 worked ok
-    //       intakeTop.move(127);
-    //     }
-    //     else if(master.get_digital(DIGITAL_R2)){
-    //       intakeBot.move(-127);
-    //       intakeTop.move(-127);			
-    //     }
-    //     else{
-    //       intakeBot.brake();
-    //       intakeTop.brake();
-    //     }
-  
-    //   }
-    // }
-    
-
-
-    ////MANUAL INTAKE CODE///////////
-    // if  (master.get_digital(DIGITAL_R1) == 1 && colorReject == true) {
-    //         intakeBot.move(127);//100 worked ok
-    //         intakeTop.move(127);
-    //       }
-    //       else if(master.get_digital(DIGITAL_R2) == 1 && colorReject == true){
-    //         intakeBot.move(-127);
-    //         intakeTop.move(-127);			
-    //       }
-    //       else{
-    //         intakeBot.brake();
-    //         intakeTop.brake();
-    //       }
-
 
 
 		//LB Code///////////////////////////////////////////////////////////////////////////////////
@@ -454,30 +361,34 @@ void opcontrol() {
 		if(master.get_digital(DIGITAL_Y)){
 			LBR.move_absolute(LBStage,127);
 			LBL.move_absolute(LBStage,127);		
-			intakeTop.move(-40);
+			intakeTop.move(50);
 		}
 		else{
 			LBR.move_absolute(LBStage,70);
 			LBL.move_absolute(LBStage,70);
 		}
-
     // //CLAMP Code/////////////////////////////////////////////
-    // if(master.get_digital(DIGITAL_L1)){
-		// 	clampP.set_value(1);
-		// }
-		// else if(clampLimit.get_new_press())
-		// 	clampP.set_value(0);
+    if(master.get_digital(DIGITAL_L2)){
+			pistonC.set_value(1);
+		}
+		else {
+			pistonC.set_value(0);
+    }
 
     //DOINKER Code///////////////////////////////////////////////////
-    if(master.get_digital(DIGITAL_L2)){
+    if(master.get_digital(DIGITAL_L1)){
       doinkerP.set_value(1);
     }
     else{
       doinkerP.set_value(0);
     }
 
-    if (master.get_digital(DIGITAL_L1)) {
-      chassis.drive_sensor_reset();
+
+    if(master.get_digital(DIGITAL_X)){
+			clampP.set_value(1);
+		}
+		else {
+			clampP.set_value(0);
     }
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
