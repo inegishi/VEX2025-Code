@@ -396,7 +396,7 @@ int tile = 24;
 
 void blueside() {
   chassis.pid_odom_set({{{12_in, 12_in}, fwd, DRIVE_SPEED},
-    {{24_in, 24_in}, fwd, DRIVE_SPEED}},
+    {{24_in, 24_in},  fwd, DRIVE_SPEED}},
    true);
 chassis.pid_wait();
 }

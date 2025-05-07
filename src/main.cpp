@@ -27,17 +27,17 @@ void clampThread(void* param) {
 
 static bool colorReject = true;
 
+//red = h < 20 blue = h > 200
 void colorSort(void* param) {
-  colorSensor.set_led_pwm(100);
 
   while (true) {
     int hue = colorSensor.get_hue();
 
     // AUTOMATIC COLOR-BASED REJECTION
-    if (hue < 20 && colorReject) {
+    if (hue < 30 && colorReject) {
       colorReject = false;
       pistonC.set_value(1);
-      pros::delay(500);  // Optional cooldown
+      pros::delay(700);  // Optional cooldown
       colorReject = true;
       pistonC.set_value(0);
     }
@@ -131,9 +131,9 @@ void initialize() {
   chassis.initialize();
   ez::as::initialize();
   pros::Task colorTask(colorSort);
-  // pros::Task clampTask(clampThread);
+  pros::Task clampTask(clampThread);
   master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
-
+  colorSensor.set_led_pwm(100);
 }
 
 /**
@@ -368,12 +368,7 @@ void opcontrol() {
 			LBL.move_absolute(LBStage,70);
 		}
     // //CLAMP Code/////////////////////////////////////////////
-    if(master.get_digital(DIGITAL_L2)){
-			pistonC.set_value(1);
-		}
-		else {
-			pistonC.set_value(0);
-    }
+
 
     //DOINKER Code///////////////////////////////////////////////////
     if(master.get_digital(DIGITAL_L1)){
@@ -385,10 +380,10 @@ void opcontrol() {
 
 
     if(master.get_digital(DIGITAL_X)){
-			clampP.set_value(1);
+			clampP.set_value(0);
 		}
 		else {
-			clampP.set_value(0);
+			clampP.set_value(1);
     }
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
