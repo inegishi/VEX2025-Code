@@ -12,12 +12,12 @@ extern Drive chassis;
 
 
 //INTAKE////////////////////////////////////////
-inline pros::Motor intakeBot(13);
+inline pros::Motor intakeBot(6);
 inline pros::Motor intakeTop(-12);
 inline pros::Optical colorSensor(3);
 inline pros::Distance colorDist(16);
 //CLAMP/////////////////////////////////////////
-inline pros::adi::DigitalIn clampLimit('C');
+inline pros::adi::DigitalIn clampLimit('E');
 inline pros::adi::DigitalOut clampP('C');
 inline pros::adi::DigitalOut doinkerP('F');
 inline pros::adi::DigitalOut pistonC('H');
