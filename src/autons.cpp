@@ -392,11 +392,35 @@ void measure_offsets() {
 // . . .
 // Make your own autonomous functions here!
 // . . .
-int tile = 24;
 
-void blueside() {
-  chassis.pid_odom_set({{{12_in, 12_in}, fwd, DRIVE_SPEED},
-    {{24_in, 24_in}, fwd, DRIVE_SPEED}},
-   true);
-chassis.pid_wait();
+
+void sensor_reset(){
+  
 }
+
+
+////////////////////////Positive Corner Autons////////////////////////////////
+void right_mid_goal_rush(){
+  sensor_reset();
+
+  pros::delay(1000);
+
+  /*deploy doinker and rush right */
+  doinkerP.set_value(1);
+  chassis.drive_set(127,127);
+  while(chassis.odom_y_get() < 30)
+  chassis.pid_wait();
+  doinkerP.set_value(0);
+  chassis.odom_xyt_set(0_in, 0_in, 0_deg);//find degree offset
+  /*get mogo and rush mid*/
+  chassis.pid_odom_set({{-21_in, 7_in}, rev, DRIVE_SPEED});
+  chassis.pid_wait_quick_chain();
+  doinkerP.set_value(0);
+  chassis.pid_odom_set({{-30_in, 10_in}, rev, DRIVE_SPEED});
+  /*bot should slam into mogo and auto clamp*/
+  if(clampLimit.get_value()){
+    //run code if we grabbed mid mogo
+  }
+  else{
+    // run code if we missed mid mogo
+  }
