@@ -19,3 +19,6 @@ void measure_offsets();
 void drive_forward();
 void odom_drive_forward();
 void blueside();
+void odom_pid_turn_test();
+void blue_path();
+void full_speed_diagnostic();

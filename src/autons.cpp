@@ -16,7 +16,7 @@ const int SWING_SPEED = 110;
 void default_constants() {
   // P, I, D, and Start I
 
-  chassis.pid_drive_constants_set(8, 0.0, 110.0);         // Fwd/rev constants, used for odom and non odom motions
+  chassis.pid_drive_constants_set(15, 0.1, 0);         // Fwd/rev constants, used for odom and non odom motions
 
   chassis.pid_heading_constants_set(11.0, 0.0, 20.0);        // Holds the robot straight while going forward without odom
   chassis.pid_turn_constants_set(11, 0.07, 100.0, 30.0);     // Turn in place constants
@@ -391,36 +391,34 @@ void measure_offsets() {
 
 // . . .
 // Make your own autonomous functions here!
-// . . .
-
-
-void sensor_reset(){
+void full_speed_diagnostic() {
+  // // 1. Test raw motor output (bypass PID)
+  // pros::lcd::print(0, "TEST 1: Raw motor test");
+  // chassis(127);
+  // pros::delay(2000);
+  // chassis.left_motors.brake();
+  // chassis.right_motors.brake();
   
+  // 2. Test with just P term
+  pros::lcd::print(0, "TEST 2: P-only (P=30)");
+  chassis.pid_drive_constants_set(30.0, 0.0, 0.0);
+  chassis.pid_odom_set(48.0, 127, true);
+  chassis.pid_wait();
+  
+//   // 3. Test with tuned constants
+//   pros::lcd::print(0, "TEST 3: Tuned PID");
+//   chassis.pid_drive_constants_set(25.0, 0.2, 20.0);
+//   chassis.slew_drive_constants_set(10_in, 127);
+//   chassis.pid_odom_set(48.0, 127, true);
+//   chassis.pid_wait();
 }
 
-
-////////////////////////Positive Corner Autons////////////////////////////////
-void right_mid_goal_rush(){
-  sensor_reset();
-
-  pros::delay(1000);
-
-  /*deploy doinker and rush right */
+void blue_path() {
+  chassis.odom_xyt_set(0_in, 0_in, 22_deg); 
   doinkerP.set_value(1);
-  chassis.drive_set(127,127);
-  while(chassis.odom_y_get() < 30)
+  chassis.pid_odom_set(39_in, DRIVE_SPEED, false);
   chassis.pid_wait();
-  doinkerP.set_value(0);
-  chassis.odom_xyt_set(0_in, 0_in, 0_deg);//find degree offset
-  /*get mogo and rush mid*/
-  chassis.pid_odom_set({{-21_in, 7_in}, rev, DRIVE_SPEED});
-  chassis.pid_wait_quick_chain();
-  doinkerP.set_value(0);
-  chassis.pid_odom_set({{-30_in, 10_in}, rev, DRIVE_SPEED});
-  /*bot should slam into mogo and auto clamp*/
-  if(clampLimit.get_value()){
-    //run code if we grabbed mid mogo
-  }
-  else{
-    // run code if we missed mid mogo
-  }
+  chassis.pid_odom_set(-12_in, DRIVE_SPEED, false);
+  chassis.pid_wait();
+
+}
