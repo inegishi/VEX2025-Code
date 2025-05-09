@@ -34,7 +34,7 @@ void colorSort(void* param) {
     int hue = colorSensor.get_hue();
 
     // AUTOMATIC COLOR-BASED REJECTION
-    if (hue < 30 && colorReject) {
+    if (hue < 20 && colorReject) {
       colorReject = false;
       pistonC.set_value(1);
       pros::delay(700);  // Optional cooldown
@@ -101,7 +101,7 @@ void initialize() {
   // Configure your chassis controls
   chassis.opcontrol_curve_buttons_toggle(true);   // Enables modifying the controller curve with buttons on the joysticks
   chassis.opcontrol_drive_activebrake_set(0.0);   // Sets the active brake kP. We recommend ~2.  0 will disable.
-  chassis.opcontrol_curve_default_set(0.0, 0.0);  // Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)
+  chassis.opcontrol_curve_default_set(0.0, 2);  // Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)
 
   // Set the drive to your own constants from autons.cpp!
   default_constants();
@@ -175,7 +175,7 @@ void autonomous() {
   chassis.drive_sensor_reset();               // Reset drive sensors to 0
   chassis.odom_xyt_set(0_in, 0_in, 0_deg);    // Set the current position, you can start at a specific position with this
   chassis.drive_brake_set(MOTOR_BRAKE_HOLD);  // Set motors to hold.  This helps autonomous consistency
-  blueside();  /*
+    /*
   Odometry and Pure Pursuit are not magic
 
   It is possible to get perfectly consistent results without tracking wheels,
@@ -189,6 +189,7 @@ void autonomous() {
   */
 
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
+  full_speed_diagnostic();
 }
 
 /**
@@ -253,7 +254,7 @@ void ez_screen_task() {
  *   - to prevent this from accidentally happening at a competition, this
  *     is only enabled when you're not connected to competition control.
  * - gives you a GUI to change your PID values live by pressing X
- */
+ */ 
 void ez_template_extras() {
   // Only run this when not connected to a competition switch
   if (!pros::competition::is_connected()) {
@@ -329,8 +330,9 @@ void opcontrol() {
     // Gives you some extras to make EZ-Template ezier
     ez_template_extras();
 
-    chassis.opcontrol_tank();  // Tank control
-    // chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
+    // chassis.opcontrol_tank();  // Tank control
+    chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
+
     // chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
     // chassis.opcontrol_arcade_flipped(ez::SPLIT);    // Flipped split arcade
     // chassis.opcontrol_arcade_flipped(ez::SINGLE);   // Flipped single arcade
@@ -341,13 +343,13 @@ void opcontrol() {
 
 
 		//LB Code///////////////////////////////////////////////////////////////////////////////////
-    if(master.get_digital_new_press(DIGITAL_RIGHT))
+    if(master.get_digital_new_press(DIGITAL_R1))
 		{
 			LBMode = !LBMode;
 		}
 
 		if(LBMode){
-			if(master.get_digital(DIGITAL_Y)){
+			if(master.get_digital(DIGITAL_L1)){
 				LBStage = 700;//was 700
 			}
 			else
@@ -358,7 +360,7 @@ void opcontrol() {
 		else
 			LBStage = 0;
 
-		if(master.get_digital(DIGITAL_Y)){
+		if(master.get_digital(DIGITAL_L1)){
 			LBR.move_absolute(LBStage,127);
 			LBL.move_absolute(LBStage,127);		
 			intakeTop.move(50);
@@ -371,21 +373,25 @@ void opcontrol() {
 
 
     //DOINKER Code///////////////////////////////////////////////////
-    if(master.get_digital(DIGITAL_L1)){
+    if(master.get_digital(DIGITAL_Y)){
       doinkerP.set_value(1);
     }
     else{
       doinkerP.set_value(0);
-    }
+    
 
 
-    if(master.get_digital(DIGITAL_X)){
+    if(master.get_digital(DIGITAL_L2)){
 			clampP.set_value(0);
 		}
 		else {
 			clampP.set_value(1);
     }
 
+    if (clampLimit.get_value() == 1) {
+      intakeTop.move(127);
+    }
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
+}
 }
