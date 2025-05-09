@@ -19,8 +19,10 @@ inline pros::Distance colorDist(16);
 //CLAMP/////////////////////////////////////////
 inline pros::adi::DigitalIn clampLimit('E');
 inline pros::adi::DigitalOut clampP('C');
-inline pros::adi::DigitalOut doinkerP('F');
+inline pros::adi::DigitalOut doinkerP('A');
 inline pros::adi::DigitalOut pistonC('H');
+inline pros::adi::DigitalOut doinkerP2('F');
+
 
 //LB/////////////////////////////////////////
 inline pros::Motor LBR(-2);

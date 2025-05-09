@@ -9,19 +9,20 @@
 void ez_screen_task();
 
 void clampThread(void* param) {
-  bool clamped = false;
+  static bool clamped = false;
 
   while (true) {
   if (clampLimit.get_value() == 1 && clamped == false) {
       clampP.set_value(1);
       clamped = true;
-      if (master.get_digital(DIGITAL_L2)) {
-        clampP.set_value(0);
+  }
+  if (master.get_digital(DIGITAL_L2)) {
         clamped = false;
       }
-  clampP.set_value(0);
-    pros::delay(10);                   // Add delay to prevent CPU overload
+  if (clamped == false) {
+    clampP.set_value(0);
   }
+  pros::delay(50);
 }
 }
 
@@ -44,7 +45,7 @@ void colorSort(void* param) {
 
     // MANUAL CONTROL (only allowed if not rejecting)
     if (colorReject) {
-      if (master.get_digital(DIGITAL_R1)) {
+      if (master.get_digital(DIGITAL_X)) {
         intakeBot.move(127);
         intakeTop.move(127);
       } else if (master.get_digital(DIGITAL_R2)) {
@@ -381,16 +382,13 @@ void opcontrol() {
     
 
 
-    if(master.get_digital(DIGITAL_L2)){
-			clampP.set_value(0);
-		}
-		else {
-			clampP.set_value(1);
-    }
+    // if(master.get_digital(DIGITAL_L2)){
+		// 	clampP.set_value(0);
+		// }
+		// else {
+		// 	clampP.set_value(1);
+    // }
 
-    if (clampLimit.get_value() == 1) {
-      intakeTop.move(127);
-    }
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
 }
