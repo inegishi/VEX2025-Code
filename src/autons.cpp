@@ -415,7 +415,7 @@ void full_speed_diagnostic() {
 
 void blue_path() {
   chassis.odom_xyt_set(0_in, 0_in, 22_deg); 
-  doinkerP.set_value(1);
+  doinkerR.set_value(1);
   chassis.pid_odom_set(39_in, DRIVE_SPEED, false);
   chassis.pid_wait();
   chassis.pid_odom_set(-12_in, DRIVE_SPEED, false);
