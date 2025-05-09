@@ -9,19 +9,20 @@
 void ez_screen_task();
 
 void clampThread(void* param) {
-  bool clamped = false;
+  static bool clamped = false;
 
   while (true) {
   if (clampLimit.get_value() == 1 && clamped == false) {
       clampP.set_value(1);
       clamped = true;
-      if (master.get_digital(DIGITAL_L2)) {
-        clampP.set_value(0);
+  }
+  if (master.get_digital(DIGITAL_L2)) {
         clamped = false;
       }
-  clampP.set_value(0);
-    pros::delay(10);                   // Add delay to prevent CPU overload
+  if (clamped == false) {
+    clampP.set_value(0);
   }
+  pros::delay(50);
 }
 }
 
@@ -44,7 +45,7 @@ void colorSort(void* param) {
 
     // MANUAL CONTROL (only allowed if not rejecting)
     if (colorReject) {
-      if (master.get_digital(DIGITAL_R1)) {
+      if (master.get_digital(DIGITAL_X)) {
         intakeBot.move(127);
         intakeTop.move(127);
       } else if (master.get_digital(DIGITAL_R2)) {
@@ -55,9 +56,14 @@ void colorSort(void* param) {
         intakeTop.brake();
       }
     }
+    if (master.get_digital(DIGITAL_A)) {
+      master.rumble("...");
+      break;
+    }
 
     pros::delay(10);  // Avoid CPU overload
   }
+
 }
 
 
@@ -131,7 +137,7 @@ void initialize() {
   chassis.initialize();
   ez::as::initialize();
   pros::Task colorTask(colorSort);
-  pros::Task clampTask(clampThread);
+  // pros::Task clampTask(clampThread);
   master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
   colorSensor.set_led_pwm(100);
 }
@@ -189,7 +195,7 @@ void autonomous() {
   */
 
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
-  full_speed_diagnostic();
+  blue_path();
 }
 
 /**
@@ -308,11 +314,14 @@ void opcontrol() {
   int rightChassis = 0;
 	int leftChassis = 0;
 	int LBStage = 0;
+  int LBscore = 0;
+
 	bool LBMode = false;
 	int LBSpeed = 0;
 	int LBButtonCondition = 1;
   bool reject = false;
   bool wrongColor = false;
+  bool climbMode = false;
   // color.set_led_pwm(100);
   int timer1 = 0;
   int timer2 = 0;
@@ -350,47 +359,60 @@ void opcontrol() {
 
 		if(LBMode){
 			if(master.get_digital(DIGITAL_L1)){
-				LBStage = 700;//was 700
+				LBStage = 720;//was 700
 			}
 			else
-				LBStage = 120;//was 230
-
-
+				LBStage = 150;//was 230
 		}
 		else
 			LBStage = 0;
+      LBscore = 700;
 
-		if(master.get_digital(DIGITAL_L1)){
+		if(master.get_digital(DIGITAL_L1) && !climbMode){
 			LBR.move_absolute(LBStage,127);
 			LBL.move_absolute(LBStage,127);		
-			intakeTop.move(50);
+			intakeTop.move(900);
 		}
-		else{
-			LBR.move_absolute(LBStage,70);
-			LBL.move_absolute(LBStage,70);
+		else if (!climbMode) {
+			LBR.move_absolute(LBStage,127);
+			LBL.move_absolute(LBStage,127);
 		}
+    
+    if (master.get_digital(DIGITAL_L1) && !LBMode) {
+      climbMode = true;
+      LBR.move_absolute(LBscore,127);
+			LBL.move_absolute(LBscore,127);	
+    }
+    else {
+      climbMode = false;
+    }
     // //CLAMP Code/////////////////////////////////////////////
 
 
     //DOINKER Code///////////////////////////////////////////////////
     if(master.get_digital(DIGITAL_Y)){
-      doinkerP.set_value(1);
+      doinkerR.set_value(1);
     }
     else{
-      doinkerP.set_value(0);
+      doinkerR.set_value(0);
     
-
+    if(master.get_digital(DIGITAL_RIGHT)){
+      Tipdoinker.set_value(1);
+    }
+    else{
+      Tipdoinker.set_value(0);
+    }
+    
+  
 
     if(master.get_digital(DIGITAL_L2)){
 			clampP.set_value(0);
 		}
-		else {
-			clampP.set_value(1);
+    else {
+      clampP.set_value(1);
     }
+    
 
-    if (clampLimit.get_value() == 1) {
-      intakeTop.move(127);
-    }
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
 }
