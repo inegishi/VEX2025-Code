@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "redtesting11",
+    "project_name": "bluetesting11",
     "target": "v5",
     "templates": {
       "EZ-Template": {
