@@ -44,7 +44,7 @@ void clampThread(void* param) {
 }
 
 static bool colorReject = true;
-
+static bool autonNow = false;
 //red = h < 20 blue = h > 200
 void colorSort(void* param) {
 
@@ -52,7 +52,7 @@ void colorSort(void* param) {
     int hue = colorSensor.get_hue();
 
     // AUTOMATIC COLOR-BASED REJECTION
-    if (hue >200 && colorReject) {
+    if (hue < 20 && colorReject) {
       colorReject = false;
       pistonC.set_value(1);
       pros::delay(700);  // Optional cooldown
@@ -61,7 +61,7 @@ void colorSort(void* param) {
     }
 
     // MANUAL CONTROL (only allowed if not rejecting)
-    if (colorReject) {
+    if (colorReject && !autonNow) {
       if (master.get_digital(DIGITAL_X)) {
         intakeBot.move(127);
         intakeTop.move(127);
@@ -195,6 +195,7 @@ void competition_initialize() {
  * from where it left off.
  */
 void autonomous() {
+  autonNow = true;
   chassis.pid_targets_reset();                // Resets PID targets to 0
   chassis.drive_imu_reset();                  // Reset gyro position to 0
   chassis.drive_sensor_reset();               // Reset drive sensors to 0
@@ -214,10 +215,9 @@ void autonomous() {
   */
 
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
-  // pros::Task intakeRankTask(intakeRank);
-  // pros::delay(1000);
+
   blue_path();
-  // intakeRankTask.remove();
+  autonNow = false;
 }
 
 /**
@@ -393,7 +393,7 @@ void opcontrol() {
 		if(master.get_digital(DIGITAL_L1) && !climbMode){
 			LBR.move_absolute(LBStage,127);
 			LBL.move_absolute(LBStage,127);		
-			intakeTop.move(900);
+			intakeTop.move(90);
 		}
 		else if (!climbMode) {
 			LBR.move_absolute(LBStage,127);

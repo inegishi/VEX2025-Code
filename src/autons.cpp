@@ -4,6 +4,18 @@
 // For installation, upgrading, documentations, and tutorials, check out our website!
 // https://ez-robotics.github.io/EZ-Template/
 /////
+void intakeTask() {
+    while (true) {
+        intakeTop.move(-80);
+        intakeBot.move(-80);
+        pros::delay(20); // Required to prevent CPU overload
+    }
+    
+}
+
+
+
+
 
 // These are out of 127
 const int DRIVE_SPEED = 127;
@@ -413,68 +425,67 @@ void full_speed_diagnostic() {
 //   chassis.pid_wait();
 }
 
-void runIntake() {
-     intakeTop.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);  // Allow free movement
-    intakeBot.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
-    intakeTop.move(-80);
+
+
+void red_path() {
+    chassis.pid_targets_reset();
+    chassis.drive_imu_reset();
+    chassis.drive_sensor_reset();
+    chassis.odom_xyt_set(0_in, 0_in, 0_deg);
+    chassis.drive_brake_set(MOTOR_BRAKE_HOLD);\
+    pros::delay(100);
+    // Forward 30 inches
+    doinkerR.set_value(1); 
+
+    chassis.pid_turn_set(0_deg, TURN_SPEED); // Ensure straight heading
+    chassis.pid_drive_set(5_in, DRIVE_SPEED);
+    chassis.pid_wait();
+    chassis.pid_drive_set(7_in, DRIVE_SPEED);
+    chassis.pid_wait();
+    chassis.pid_drive_set(2_in, 40);
+
+    pros::delay(250); // Brief pause between movements
+
+    // Reverse 10 inches
+    doinkerR.set_value(0);    
+    chassis.pid_turn_set(0_deg, TURN_SPEED); // Maintain heading
+    chassis.pid_drive_set(-10_in, DRIVE_SPEED);
+    chassis.pid_wait();
+    chassis.pid_drive_set(0_in, DRIVE_SPEED);
+    chassis.pid_wait();
+
+    // // DOinker up and turn 180
+    doinkerR.set_value(1);
+    chassis.pid_drive_set(-0.5_in, DRIVE_SPEED);
+    chassis.pid_wait();
+    chassis.pid_targets_reset();
+    chassis.drive_imu_reset();
+    chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
+    chassis.odom_xyt_set(0_in, 0_in, 0_deg);
+
+    // Turn 180 degrees (adjust TURN_SPEED as needed)
+    chassis.pid_turn_set(-90_deg, 63); // Positive = CCW, Negative = CW
+    chassis.pid_wait();
+    chassis.pid_turn_set(-170_deg, 63); // Positive = CCW, Negative = CW  
+    chassis.pid_wait();
+
+
+    // // go backwards towards clamp and clamp goal and score
+    chassis.pid_drive_set(-2_in, DRIVE_SPEED);
+    chassis.pid_wait();
+    clampP.set_value(1);
+
     intakeBot.move(-80);
+    intakeTop.move(-80);
     pros::delay(1000);
-
-
-}
-
-
-void blue_path() {
-    // chassis.pid_targets_reset();
-    // chassis.drive_imu_reset();
-    // chassis.drive_sensor_reset();
-    // chassis.odom_xyt_set(0_in, 0_in, 0_deg);
-    // chassis.drive_brake_set(MOTOR_BRAKE_HOLD);\
-    // pros::delay(100);
-    // // Forward 30 inches
-    // doinkerR.set_value(1); 
-
-    // chassis.pid_turn_set(0_deg, TURN_SPEED); // Ensure straight heading
-    // chassis.pid_drive_set(7_in, DRIVE_SPEED);
-    // chassis.pid_wait();
-    // chassis.pid_drive_set(7_in, DRIVE_SPEED);
-    // chassis.pid_wait();
-    // chassis.pid_drive_set(2_in, 40);
-
-    // pros::delay(250); // Brief pause between movements
-
-    // // Reverse 10 inches
-    // doinkerR.set_value(0);    
-    // chassis.pid_turn_set(0_deg, TURN_SPEED); // Maintain heading
-    // chassis.pid_drive_set(-10_in, DRIVE_SPEED);
-    // chassis.pid_wait();
-    // chassis.pid_drive_set(0_in, DRIVE_SPEED);
-    // chassis.pid_wait();
-
-    // // // DOinker up and turn 180
-    // doinkerR.set_value(1);
-    // chassis.pid_drive_set(-1_in, DRIVE_SPEED);
-    // chassis.pid_wait();
-    // chassis.pid_targets_reset();
-    // chassis.drive_imu_reset();
-    // chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
-    // chassis.odom_xyt_set(0_in, 0_in, 0_deg);
-
-    // // Turn 180 degrees (adjust TURN_SPEED as needed)
-    // chassis.pid_turn_set(90_deg, 63); // Positive = CCW, Negative = CW
-    // chassis.pid_wait();
-    // chassis.pid_turn_set(180_deg, 63); // Positive = CCW, Negative = CW
-    // chassis.pid_wait();
-    // chassis.pid_turn_set(190_deg, 63); // Positive = CCW, Negative = CW
-    // chassis.pid_wait();
-
-    // // // go backwards towards clamp and clamp goal and score
-    // chassis.pid_drive_set(-7_in, DRIVE_SPEED);
-    // chassis.pid_wait();
-    // clampP.set_value(1);
-
- 
-    runIntake();
+  ///turn to nearest donut and intake
+    chassis.pid_turn_set(-130_deg, 63); // Positive = CCW, Negative = CW  
+    chassis.pid_wait();
+    pros::Task intake_task(intakeTask); // Start task
+    chassis.pid_drive_set(4_in, 50);
+    chassis.pid_wait();
+    pros::delay(1500);
+    intake_task.remove(); // Stop task (optional)
 
     // Final brake hold
     chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
@@ -485,26 +496,77 @@ void blue_path() {
 
 
 //ODOMETRY
-void red_path() {
-  // Reset odometry pose
-  chassis.odom_xyt_set(0_in, 0_in, 0_deg);  // Optional but recommended
-  doinkerR.set_value(1);
-  chassis.pid_odom_set({{{0_in, 5_in}, fwd, DRIVE_SPEED},
-    {{0_in, 10_in}, fwd, DRIVE_SPEED},
-                        {{0_in, 20_in}, fwd, DRIVE_SPEED},
-                      {{0_in, 30_in}, fwd, 80}},
-                       true);
-  chassis.pid_wait();
-  doinkerR.set_value(0);
-  chassis.pid_odom_set({{{0_in, 25_in}, rev, DRIVE_SPEED},
-    {{0_in, 20_in}, rev, DRIVE_SPEED}},
-                       true);
-  chassis.pid_wait();
+void blue_path() {
+   chassis.pid_targets_reset();
+    chassis.drive_imu_reset();
+    chassis.drive_sensor_reset();
+    chassis.odom_xyt_set(0_in, 0_in, 0_deg);
+    chassis.drive_brake_set(MOTOR_BRAKE_HOLD);\
+    pros::delay(100);
+    // Forward 30 inches
+    doinkerR.set_value(1); 
 
-  // Drive to 0, 0 backwards
-  // // chassis.pid_odom_set({{0_in, 0_in}, rev, DRIVE_SPEED},
-  //                      true);
-  // chassis.pid_wait();
+    chassis.pid_turn_set(0_deg, TURN_SPEED); // Ensure straight heading
+    chassis.pid_drive_set(5_in, DRIVE_SPEED);
+    chassis.pid_wait();
+    chassis.pid_drive_set(7_in, DRIVE_SPEED);
+    chassis.pid_wait();
+    chassis.pid_drive_set(2_in, 40);
+
+    pros::delay(250); // Brief pause between movements
+
+    // Reverse 10 inches
+    doinkerR.set_value(0);    
+    chassis.pid_turn_set(0_deg, TURN_SPEED); // Maintain heading
+    chassis.pid_drive_set(-10_in, DRIVE_SPEED);
+    chassis.pid_wait();
+    chassis.pid_drive_set(0_in, DRIVE_SPEED);
+    chassis.pid_wait();
+
+    // // DOinker up and turn 180
+    doinkerR.set_value(1);
+    chassis.pid_drive_set(-0.5_in, DRIVE_SPEED);
+    chassis.pid_wait();
+    chassis.pid_targets_reset();
+    chassis.drive_imu_reset();
+    chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
+    chassis.odom_xyt_set(0_in, 0_in, 0_deg);
+
+    // Turn 180 degrees (adjust TURN_SPEED as needed)
+    chassis.pid_turn_set(-90_deg, 63); // Positive = CCW, Negative = CW
+    chassis.pid_wait();
+    chassis.pid_turn_set(-170_deg, 63); // Positive = CCW, Negative = CW  
+    chassis.pid_wait();
+    
+    // // go backwards towards clamp and clamp goal and score
+    chassis.pid_drive_set(-2_in, DRIVE_SPEED);
+    chassis.pid_wait();
+    clampP.set_value(1);
+    pros::delay(500);
+    intakeBot.move(-80);
+    intakeTop.move(-80);
+    pros::delay(1000);
+    intakeBot.move(0);
+    intakeTop.move(0);
+    pros::delay(500);
+
+    //go forwards 
+     chassis.pid_drive_set(4_in, DRIVE_SPEED);
+    chassis.pid_wait();
+
+    
+  ///turn to nearest donut and intake
+    chassis.pid_turn_set(-220_deg, 63); // Positive = CCW, Negative = CW  
+    chassis.pid_wait();
+    pros::Task intake_task(intakeTask); // Start task
+    chassis.pid_drive_set(4_in, 50);
+    chassis.pid_wait();
+    pros::delay(1500);
+    intake_task.remove(); // Stop task (optional)
+
+    // Final brake hold
+    chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
+
 }
 
 
