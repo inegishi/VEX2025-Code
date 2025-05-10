@@ -507,7 +507,7 @@ void blue_path() {
     doinkerR.set_value(1); 
 
     chassis.pid_turn_set(0_deg, TURN_SPEED); // Ensure straight heading
-    chassis.pid_drive_set(5_in, DRIVE_SPEED);
+    chassis.pid_drive_set(6_in, DRIVE_SPEED);
     chassis.pid_wait();
     chassis.pid_drive_set(7_in, DRIVE_SPEED);
     chassis.pid_wait();
@@ -525,7 +525,7 @@ void blue_path() {
 
     // // DOinker up and turn 180
     doinkerR.set_value(1);
-    chassis.pid_drive_set(-0.5_in, DRIVE_SPEED);
+    chassis.pid_drive_set(-1_in, DRIVE_SPEED);
     chassis.pid_wait();
     chassis.pid_targets_reset();
     chassis.drive_imu_reset();
