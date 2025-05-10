@@ -8,6 +8,23 @@
 
 void ez_screen_task();
 
+//red = h < 20 blue = h > 200
+
+void intakeRank() {
+  while (true) {
+      intakeBot.move(-60);
+      intakeTop.move(-60);
+      int hue = colorSensor.get_hue();
+      if (hue < 20 ) {
+      intakeBot.move(0);
+      intakeTop.move(0);
+      break;
+    }
+
+  }
+}
+
+
 void clampThread(void* param) {
   static bool clamped = false;
 
@@ -35,7 +52,7 @@ void colorSort(void* param) {
     int hue = colorSensor.get_hue();
 
     // AUTOMATIC COLOR-BASED REJECTION
-    if (hue < 20 && colorReject) {
+    if (hue >200 && colorReject) {
       colorReject = false;
       pistonC.set_value(1);
       pros::delay(700);  // Optional cooldown
@@ -89,7 +106,7 @@ ez::tracking_wheel vert_tracker(8, 2, -4.52);   // RIGHT This tracking wheel is 
  * Runs initialization code. This occurs as soon as the program is started.
  *
  * All other competition modes are blocked by initialize; it is recommended
- * to keep execution time for this mode under a few seconds.
+ * to keep executions time for this mode under a few seconds.
  */
 void initialize() {
 
@@ -136,8 +153,10 @@ void initialize() {
   pros::Task ezScreenTask(ez_screen_task);
   chassis.initialize();
   ez::as::initialize();
-  pros::Task colorTask(colorSort);
+
   // pros::Task clampTask(clampThread);
+  pros::Task colorTask(colorSort);
+
   master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
   colorSensor.set_led_pwm(100);
 }
@@ -195,7 +214,10 @@ void autonomous() {
   */
 
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
+  // pros::Task intakeRankTask(intakeRank);
+  // pros::delay(1000);
   blue_path();
+  // intakeRankTask.remove();
 }
 
 /**
@@ -405,12 +427,12 @@ void opcontrol() {
     
   
 
-    if(master.get_digital(DIGITAL_L2)){
-			clampP.set_value(0);
-		}
-    else {
-      clampP.set_value(1);
-    }
+    // if(master.get_digital(DIGITAL_L2)){
+		// 	clampP.set_value(0);
+		// }
+    // else {
+    //   clampP.set_value(1);
+    // }
     
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
