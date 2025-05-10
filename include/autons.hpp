@@ -22,3 +22,4 @@ void blueside();
 void odom_pid_turn_test();
 void blue_path();
 void full_speed_diagnostic();
+void red_path();
