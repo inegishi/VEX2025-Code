@@ -12,7 +12,7 @@ extern Drive chassis;
 
 
 //INTAKE////////////////////////////////////////
-inline pros::Motor intakeBot(6);
+inline pros::Motor intakeBot(8);
 inline pros::Motor intakeTop(-12);
 inline pros::Optical colorSensor(3);
 inline pros::Distance colorDist(16);

@@ -44,23 +44,34 @@ void clampThread(void* param) {
 }
 
 static bool colorReject = true;
+static bool rejectRed = false;
 static bool autonNow = false;
-//red = h < 20 blue = h > 200
+
+// red = hue < 20 , blue = hue > 200
 void colorSort(void* param) {
+  static bool lastAState = false;
 
   while (true) {
     int hue = colorSensor.get_hue();
 
     // AUTOMATIC COLOR-BASED REJECTION
-    if (hue < 20 && colorReject) {
+    if (hue > 200 && colorReject && !rejectRed) {
       colorReject = false;
       pistonC.set_value(1);
-      pros::delay(700);  // Optional cooldown
-      colorReject = true;
+      pros::delay(700);
       pistonC.set_value(0);
+      colorReject = true;
     }
 
-    // MANUAL CONTROL (only allowed if not rejecting)
+    if (hue < 20 && colorReject && rejectRed) {
+      colorReject = false;
+      pistonC.set_value(1);
+      pros::delay(700);
+      pistonC.set_value(0);
+      colorReject = true;
+    }
+
+    // MANUAL CONTROL (disabled in auton or during rejection)
     if (colorReject && !autonNow) {
       if (master.get_digital(DIGITAL_X)) {
         intakeBot.move(127);
@@ -73,14 +84,16 @@ void colorSort(void* param) {
         intakeTop.brake();
       }
     }
-    if (master.get_digital(DIGITAL_A)) {
-      master.rumble("...");
-      break;
+
+    // Toggle between rejecting red or blue
+    bool currentAState = master.get_digital(DIGITAL_A);
+    if (currentAState && !lastAState) {
+      rejectRed = !rejectRed;
     }
+    lastAState = currentAState;
 
-    pros::delay(10);  // Avoid CPU overload
+    pros::delay(10);
   }
-
 }
 
 
@@ -216,7 +229,7 @@ void autonomous() {
 
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
 
-  blue_path();
+  red_path();
   autonNow = false;
 }
 
@@ -381,10 +394,10 @@ void opcontrol() {
 
 		if(LBMode){
 			if(master.get_digital(DIGITAL_L1)){
-				LBStage = 720;//was 700
+				LBStage = 700;//was 700
 			}
 			else
-				LBStage = 150;//was 230
+				LBStage = 160;//was 230
 		}
 		else
 			LBStage = 0;
@@ -396,8 +409,8 @@ void opcontrol() {
 			intakeTop.move(90);
 		}
 		else if (!climbMode) {
-			LBR.move_absolute(LBStage,127);
-			LBL.move_absolute(LBStage,127);
+			LBR.move_absolute(LBStage,80);
+			LBL.move_absolute(LBStage,80);
 		}
     
     if (master.get_digital(DIGITAL_L1) && !LBMode) {
@@ -412,27 +425,30 @@ void opcontrol() {
 
 
     //DOINKER Code///////////////////////////////////////////////////
-    if(master.get_digital(DIGITAL_Y)){
-      doinkerR.set_value(1);
-    }
-    else{
-      doinkerR.set_value(0);
-    
+
+
     if(master.get_digital(DIGITAL_RIGHT)){
       Tipdoinker.set_value(1);
     }
     else{
       Tipdoinker.set_value(0);
     }
+
+    if(master.get_digital(DIGITAL_Y)){
+      doinkerR.set_value(1);
+    }
+    else{
+      doinkerR.set_value(0);
     
   
+  
 
-    // if(master.get_digital(DIGITAL_L2)){
-		// 	clampP.set_value(0);
-		// }
-    // else {
-    //   clampP.set_value(1);
-    // }
+    if(master.get_digital(DIGITAL_L2)){
+			clampP.set_value(0);
+		}
+    else {
+      clampP.set_value(1);
+    }
     
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME

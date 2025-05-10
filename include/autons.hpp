@@ -24,3 +24,7 @@ void blue_path();
 void full_speed_diagnostic();
 void red_path();
 void runIntake();
+void red_middle_goal();
+void blue_middle_goal();
+void red_safe();
+void blue_safe();
