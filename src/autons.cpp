@@ -6,8 +6,8 @@
 /////
 void intakeTask() {
     while (true) {
-        intakeTop.move(-80);
-        intakeBot.move(-80);
+        intakeTop.move(-127);
+        intakeBot.move(-127);
         pros::delay(20); // Required to prevent CPU overload
     }
     
@@ -742,23 +742,44 @@ void blue_middle_goal() {
 void red_safe() {
   
     // // go backwards towards clamp and clamp goal and score
-    chassis.pid_drive_set(-3_in, DRIVE_SPEED);
+
+    chassis.pid_drive_set(-2_in, DRIVE_SPEED);
+    clampP.set_value(0);
     chassis.pid_wait();
-    clampP.set_value(1);
-    pros::delay(1000);
-    intakeBot.move(-80);
-    intakeTop.move(-80);
-    pros::delay(1000);
-    intakeBot.move(0);
-    intakeTop.move(0);
     pros::delay(500);
-    
-    chassis.pid_turn_set(120_deg, 63); // Positive = CCW, Negative = CW
+    clampP.set_value(1);
+        doinkerR.set_value(1);
+    pros::delay(500);
+    doinkerR.set_value(0);
+
+
+    chassis.pid_turn_set(8_deg, 63); // Positive = CCW, Negative = CW
     pros::Task intake_task(intakeTask); // Start task
-    chassis.pid_drive_set(4_in, 50);
+    chassis.pid_drive_set(15_in, 70);
     chassis.pid_wait();
     pros::delay(1500);
-    
+    chassis.pid_drive_set(-6_in, 45);
+    chassis.pid_wait();
+    chassis.pid_drive_set(7_in, 45);
+    chassis.pid_wait();
+        pros::delay(500);
+
+    chassis.pid_drive_set(-5_in, 45);
+    chassis.pid_wait();
+    chassis.pid_drive_set(7_in, 50);
+    chassis.pid_wait();
+        pros::delay(500);
+
+chassis.pid_drive_set(-5_in, 45);
+    chassis.pid_wait();
+    chassis.pid_drive_set(7_in, 45);
+    chassis.pid_wait();
+        pros::delay(500);
+
+
+
+    chassis.pid_drive_set(-50_in, DRIVE_SPEED);
+    chassis.pid_wait();
   
     chassis.pid_wait();
 
@@ -776,14 +797,13 @@ void blue_safe() {
     
     
     pros::Task intake_task(intakeTask); // Start task
-    Tipdoinker.set_value(1);
-    chassis.pid_drive_set(10_in, 80);
+    chassis.pid_drive_set(10_in, 60);
     chassis.pid_wait();
-    pros::delay(1500);
+    pros::delay(5000);
     //turn n sweep
-    chassis.pid_turn_set(-120_deg, 63); // Positive = CCW, Negative = CW
 
   
     chassis.pid_wait();
+
 
 }
