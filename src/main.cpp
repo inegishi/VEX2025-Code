@@ -12,8 +12,8 @@ void ez_screen_task();
 
 void intakeRank() {
   while (true) {
-      intakeBot.move(-60);
-      intakeTop.move(-60);
+      intakeBot.move(-80);
+      intakeTop.move(-80);
       int hue = colorSensor.get_hue();
       if (hue < 20 ) {
       intakeBot.move(0);
@@ -229,7 +229,7 @@ void autonomous() {
 
   // ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
 
-  red_path();
+  red_safe();
   autonNow = false;
 }
 
